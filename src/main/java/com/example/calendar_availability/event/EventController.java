@@ -17,20 +17,22 @@ public class EventController {
 
     private final EventService eventService;
 
-     @PostMapping("/events")
-    public ResponseEntity<Event> createEvent(@Validated @RequestBody Event event) {
-        return new ResponseEntity<>(eventService.createEvent(event), HttpStatus.CREATED);
+    @PostMapping("/events")
+    public ResponseEntity<EventResponse> createEvent(@Validated @RequestBody CreateEventRequest request) {
+        return new ResponseEntity<>(eventService.createEvent(request), HttpStatus.CREATED);
     }
-   @GetMapping("/events")
-    public ResponseEntity<List<Event>> getEvents(
+
+    @GetMapping("/events")
+    public ResponseEntity<List<EventResponse>> getEvents(
             @RequestParam Long ownerId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime to) {
         return ResponseEntity.ok(eventService.getEvents(ownerId, from, to));
     }
 
-      @PostMapping("/availability/query")
-    public ResponseEntity<List<TimeSlot>> queryAvailability(@Validated @RequestBody AvailabilityRequest request) {
+    @PostMapping("/availability/query")
+    public ResponseEntity<List<TimeSlot>> queryAvailability(
+            @Validated @RequestBody AvailabilityRequest request) {
         return ResponseEntity.ok(eventService.getAvailability(request));
     }
 

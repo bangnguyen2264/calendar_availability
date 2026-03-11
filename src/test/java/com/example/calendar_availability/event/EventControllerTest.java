@@ -50,17 +50,17 @@ class EventControllerTest {
                 .build();
     }
 
-    private Event buildEvent(Long id, String title, ZonedDateTime start, ZonedDateTime end,
-                             EventType type, Long ownerId) {
-        Event event = new Event();
-        event.setId(id);
-        event.setTitle(title);
-        event.setStartAt(start);
-        event.setEndAt(end);
-        event.setTimezone("Asia/Ho_Chi_Minh");
-        event.setType(type);
-        event.setOwnerId(ownerId);
-        return event;
+    private EventResponse buildEventResponse(Long id, String title, ZonedDateTime start, ZonedDateTime end,
+                                             EventType type, Long ownerId) {
+        return EventResponse.builder()
+                .id(id)
+                .title(title)
+                .startAt(start)
+                .endAt(end)
+                .timezone("Asia/Ho_Chi_Minh")
+                .type(type)
+                .ownerId(ownerId)
+                .build();
     }
 
     /** Helper: build JSON cho Event request body */
@@ -107,8 +107,8 @@ class EventControllerTest {
         @Test
         @DisplayName("Valid event → 201 CREATED")
         void createEvent_valid_returns201() throws Exception {
-            Event saved = buildEvent(1L, "Meeting", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 1L);
-            when(eventService.createEvent(any(Event.class))).thenReturn(saved);
+            EventResponse saved = buildEventResponse(1L, "Meeting", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 1L);
+            when(eventService.createEvent(any(CreateEventRequest.class))).thenReturn(saved);
 
             mockMvc.perform(post("/api/events")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -197,7 +197,7 @@ class EventControllerTest {
         @Test
         @DisplayName("Overlap detected → 409 CONFLICT with error message")
         void createEvent_overlap_returns409() throws Exception {
-            when(eventService.createEvent(any(Event.class)))
+            when(eventService.createEvent(any(CreateEventRequest.class)))
                     .thenThrow(new CustomException(
                             "Appointment overlaps with an existing appointment", HttpStatus.CONFLICT));
 
@@ -214,7 +214,7 @@ class EventControllerTest {
         @Test
         @DisplayName("Invalid time range → 400 BAD REQUEST via service")
         void createEvent_invalidRange_returns400() throws Exception {
-            when(eventService.createEvent(any(Event.class)))
+            when(eventService.createEvent(any(CreateEventRequest.class)))
                     .thenThrow(new CustomException(
                             "Start time must be strictly before end time", HttpStatus.BAD_REQUEST));
 
@@ -238,7 +238,7 @@ class EventControllerTest {
         @Test
         @DisplayName("Valid query → 200 OK with events")
         void getEvents_valid_returns200() throws Exception {
-            Event event = buildEvent(1L, "Meeting", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 1L);
+            EventResponse event = buildEventResponse(1L, "Meeting", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 1L);
             when(eventService.getEvents(eq(1L), any(), any())).thenReturn(List.of(event));
 
             mockMvc.perform(get("/api/events")

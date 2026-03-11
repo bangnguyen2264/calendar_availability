@@ -1,4 +1,5 @@
 package com.example.calendar_availability.event;
+
 import com.example.calendar_availability.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,7 +10,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service // Vẫn giữ annotation này ở lớp Implementation
+@Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
 
@@ -17,18 +18,26 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public Event createEvent(Event event) {
-        validateTimeRange(event.getStartAt(), event.getEndAt());
+    public EventResponse createEvent(CreateEventRequest request) {
+        validateTimeRange(request.getStartAt(), request.getEndAt());
+
+        Event event = mapToEntity(request);
         checkOverlap(event, null);
-        return eventRepository.save(event);
+
+        Event saved = eventRepository.save(event);
+        return mapToResponse(saved);
     }
 
     @Override
-    public List<Event> getEvents(Long ownerId, ZonedDateTime from, ZonedDateTime to) {
+    public List<EventResponse> getEvents(Long ownerId, ZonedDateTime from, ZonedDateTime to) {
         validateOwnerExists(ownerId);
         validateTimeRange(from, to);
 
-         return eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(ownerId, to, from);
+        return eventRepository
+                .findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(ownerId, to, from)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Override
@@ -58,7 +67,39 @@ public class EventServiceImpl implements EventService {
         return availableSlots;
     }
 
-    // Các hàm helper (private) giữ nguyên, không cần đưa vào Interface
+    // ======================== Mapping ========================
+
+    private Event mapToEntity(CreateEventRequest request) {
+        Event event = new Event();
+        event.setTitle(request.getTitle());
+        event.setStartAt(request.getStartAt());
+        event.setEndAt(request.getEndAt());
+        event.setTimezone(request.getTimezone());
+        event.setType(request.getType());
+        event.setOwnerId(request.getOwnerId());
+        event.setNotes(request.getNotes());
+        event.setLocation(request.getLocation());
+        event.setAttendees(request.getAttendees());
+        return event;
+    }
+
+    private EventResponse mapToResponse(Event event) {
+        return EventResponse.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .startAt(event.getStartAt())
+                .endAt(event.getEndAt())
+                .timezone(event.getTimezone())
+                .type(event.getType())
+                .ownerId(event.getOwnerId())
+                .notes(event.getNotes())
+                .location(event.getLocation())
+                .attendees(event.getAttendees())
+                .build();
+    }
+
+    // ======================== Validation ========================
+
     private void validateOwnerExists(Long ownerId) {
         if (!eventRepository.existsByOwnerId(ownerId)) {
             throw new CustomException("Owner with id " + ownerId + " not found", HttpStatus.NOT_FOUND);

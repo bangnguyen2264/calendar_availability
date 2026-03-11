@@ -39,6 +39,7 @@ class EventServiceImplTest {
     private static final ZonedDateTime TODAY_3PM  = ZonedDateTime.of(2026, 3, 11, 15, 0, 0, 0, ZONE);
     private static final ZonedDateTime TODAY_5PM  = ZonedDateTime.of(2026, 3, 11, 17, 0, 0, 0, ZONE);
 
+    /** Helper: build Entity (dùng cho mock repository trả về) */
     private Event buildEvent(Long id, String title, ZonedDateTime start, ZonedDateTime end,
                              EventType type, Long ownerId) {
         Event event = new Event();
@@ -52,6 +53,19 @@ class EventServiceImplTest {
         return event;
     }
 
+    /** Helper: build DTO request (dùng cho input service) */
+    private CreateEventRequest buildRequest(String title, ZonedDateTime start, ZonedDateTime end,
+                                            EventType type, Long ownerId) {
+        CreateEventRequest req = new CreateEventRequest();
+        req.setTitle(title);
+        req.setStartAt(start);
+        req.setEndAt(end);
+        req.setTimezone("Asia/Ho_Chi_Minh");
+        req.setType(type);
+        req.setOwnerId(ownerId);
+        return req;
+    }
+
     // ========================================================================
     // 1. VALIDATION TESTS – Missing fields or invalid time ranges
     // ========================================================================
@@ -62,9 +76,9 @@ class EventServiceImplTest {
         @Test
         @DisplayName("createEvent – startAt equals endAt → BAD_REQUEST")
         void createEvent_startEqualsEnd_shouldThrow() {
-            Event event = buildEvent(null, "Meeting", TODAY_9AM, TODAY_9AM, EventType.APPOINTMENT, 1L);
+            CreateEventRequest request = buildRequest("Meeting", TODAY_9AM, TODAY_9AM, EventType.APPOINTMENT, 1L);
 
-            assertThatThrownBy(() -> eventService.createEvent(event))
+            assertThatThrownBy(() -> eventService.createEvent(request))
                     .isInstanceOf(CustomException.class)
                     .hasMessageContaining("Start time must be strictly before end time")
                     .satisfies(ex -> assertThat(((CustomException) ex).getStatus())
@@ -74,9 +88,9 @@ class EventServiceImplTest {
         @Test
         @DisplayName("createEvent – startAt after endAt → BAD_REQUEST")
         void createEvent_startAfterEnd_shouldThrow() {
-            Event event = buildEvent(null, "Meeting", TODAY_11AM, TODAY_9AM, EventType.APPOINTMENT, 1L);
+            CreateEventRequest request = buildRequest("Meeting", TODAY_11AM, TODAY_9AM, EventType.APPOINTMENT, 1L);
 
-            assertThatThrownBy(() -> eventService.createEvent(event))
+            assertThatThrownBy(() -> eventService.createEvent(request))
                     .isInstanceOf(CustomException.class)
                     .hasMessageContaining("Start time must be strictly before end time");
         }
@@ -158,7 +172,7 @@ class EventServiceImplTest {
             when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
                     .thenReturn(List.of(event));
 
-            List<Event> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
+            List<EventResponse> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
 
             assertThat(result).hasSize(1);
             assertThat(result.getFirst().getTitle()).isEqualTo("Team Sync");
@@ -172,7 +186,7 @@ class EventServiceImplTest {
             when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
                     .thenReturn(List.of(event));
 
-            List<Event> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
+            List<EventResponse> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
 
             assertThat(result).hasSize(1);
         }
@@ -185,7 +199,7 @@ class EventServiceImplTest {
             when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
                     .thenReturn(List.of(event));
 
-            List<Event> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
+            List<EventResponse> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
 
             assertThat(result).hasSize(1);
         }
@@ -196,7 +210,7 @@ class EventServiceImplTest {
             when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
                     .thenReturn(Collections.emptyList());
 
-            List<Event> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
+            List<EventResponse> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
 
             assertThat(result).isEmpty();
         }
@@ -210,7 +224,7 @@ class EventServiceImplTest {
             when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
                     .thenReturn(List.of(e1, e2, e3));
 
-            List<Event> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
+            List<EventResponse> result = eventService.getEvents(1L, TODAY_9AM, TODAY_5PM);
 
             assertThat(result).hasSize(3);
         }
@@ -226,11 +240,11 @@ class EventServiceImplTest {
         @Test
         @DisplayName("APPOINTMENT overlaps existing APPOINTMENT → CONFLICT (409)")
         void createAppointment_overlap_shouldThrow409() {
-            Event newEvent = buildEvent(null, "Overlap", TODAY_9AM, TODAY_11AM, EventType.APPOINTMENT, 1L);
+            CreateEventRequest request = buildRequest("Overlap", TODAY_9AM, TODAY_11AM, EventType.APPOINTMENT, 1L);
             when(eventRepository.isOverlapping(1L, EventType.APPOINTMENT, TODAY_9AM, TODAY_11AM, null))
                     .thenReturn(true);
 
-            assertThatThrownBy(() -> eventService.createEvent(newEvent))
+            assertThatThrownBy(() -> eventService.createEvent(request))
                     .isInstanceOf(CustomException.class)
                     .satisfies(ex -> {
                         CustomException ce = (CustomException) ex;
@@ -244,26 +258,27 @@ class EventServiceImplTest {
         @Test
         @DisplayName("APPOINTMENT no overlap → saved successfully")
         void createAppointment_noOverlap_shouldSave() {
-            Event newEvent = buildEvent(null, "Free Slot", TODAY_2PM, TODAY_3PM, EventType.APPOINTMENT, 1L);
+            CreateEventRequest request = buildRequest("Free Slot", TODAY_2PM, TODAY_3PM, EventType.APPOINTMENT, 1L);
             Event saved = buildEvent(1L, "Free Slot", TODAY_2PM, TODAY_3PM, EventType.APPOINTMENT, 1L);
             when(eventRepository.isOverlapping(1L, EventType.APPOINTMENT, TODAY_2PM, TODAY_3PM, null))
                     .thenReturn(false);
-            when(eventRepository.save(newEvent)).thenReturn(saved);
+            when(eventRepository.save(any(Event.class))).thenReturn(saved);
 
-            Event result = eventService.createEvent(newEvent);
+            EventResponse result = eventService.createEvent(request);
 
             assertThat(result.getId()).isEqualTo(1L);
-            verify(eventRepository).save(newEvent);
+            assertThat(result.getTitle()).isEqualTo("Free Slot");
+            verify(eventRepository).save(any(Event.class));
         }
 
         @Test
         @DisplayName("BLOCK event does NOT trigger overlap check")
         void createBlock_noOverlapCheck() {
-            Event block = buildEvent(null, "Lunch", TODAY_12PM, TODAY_1PM, EventType.BLOCK, 1L);
+            CreateEventRequest request = buildRequest("Lunch", TODAY_12PM, TODAY_1PM, EventType.BLOCK, 1L);
             Event saved = buildEvent(2L, "Lunch", TODAY_12PM, TODAY_1PM, EventType.BLOCK, 1L);
-            when(eventRepository.save(block)).thenReturn(saved);
+            when(eventRepository.save(any(Event.class))).thenReturn(saved);
 
-            Event result = eventService.createEvent(block);
+            EventResponse result = eventService.createEvent(request);
 
             assertThat(result.getType()).isEqualTo(EventType.BLOCK);
             verify(eventRepository, never()).isOverlapping(anyLong(), any(), any(), any(), any());
@@ -272,11 +287,11 @@ class EventServiceImplTest {
         @Test
         @DisplayName("Partial overlap (new starts during existing) → CONFLICT")
         void createAppointment_partialOverlap_shouldThrow409() {
-            Event newEvent = buildEvent(null, "X", TODAY_10AM, TODAY_12PM, EventType.APPOINTMENT, 1L);
+            CreateEventRequest request = buildRequest("X", TODAY_10AM, TODAY_12PM, EventType.APPOINTMENT, 1L);
             when(eventRepository.isOverlapping(1L, EventType.APPOINTMENT, TODAY_10AM, TODAY_12PM, null))
                     .thenReturn(true);
 
-            assertThatThrownBy(() -> eventService.createEvent(newEvent))
+            assertThatThrownBy(() -> eventService.createEvent(request))
                     .isInstanceOf(CustomException.class)
                     .satisfies(ex -> assertThat(((CustomException) ex).getStatus())
                             .isEqualTo(HttpStatus.CONFLICT));
@@ -285,13 +300,13 @@ class EventServiceImplTest {
         @Test
         @DisplayName("Different owner same time → allowed (no conflict)")
         void createAppointment_differentOwner_shouldSave() {
-            Event newEvent = buildEvent(null, "Owner2", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 2L);
+            CreateEventRequest request = buildRequest("Owner2", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 2L);
             Event saved = buildEvent(3L, "Owner2", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 2L);
             when(eventRepository.isOverlapping(2L, EventType.APPOINTMENT, TODAY_9AM, TODAY_10AM, null))
                     .thenReturn(false);
-            when(eventRepository.save(newEvent)).thenReturn(saved);
+            when(eventRepository.save(any(Event.class))).thenReturn(saved);
 
-            Event result = eventService.createEvent(newEvent);
+            EventResponse result = eventService.createEvent(request);
 
             assertThat(result.getOwnerId()).isEqualTo(2L);
         }
@@ -417,6 +432,59 @@ class EventServiceImplTest {
             assertThat(slots.get(0)).isEqualTo(new TimeSlot(TODAY_9AM, TODAY_12PM));
             assertThat(slots.get(1)).isEqualTo(new TimeSlot(TODAY_1PM, TODAY_5PM));
         }
+
+        // ---- EDGE CASES: chứng minh thuật toán xử lý đúng các tình huống phức tạp ----
+
+        @Test
+        @DisplayName("Overlapping events (9-11 + 10-12) → merged correctly, one gap after")
+        void overlappingEvents_mergedCorrectly() {
+            // Event 9:00-11:00 và 10:00-12:00 chồng lấn nhau
+            Event e1 = buildEvent(1L, "A", TODAY_9AM, TODAY_11AM, EventType.APPOINTMENT, 1L);
+            Event e2 = buildEvent(2L, "B", TODAY_10AM, TODAY_12PM, EventType.BLOCK, 1L);
+            AvailabilityRequest req = new AvailabilityRequest(1L, TODAY_9AM, TODAY_5PM);
+            when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
+                    .thenReturn(List.of(e1, e2));
+
+            List<TimeSlot> slots = eventService.getAvailability(req);
+
+            // Chỉ còn 1 slot trống: 12:00 – 17:00
+            assertThat(slots).hasSize(1);
+            assertThat(slots.getFirst()).isEqualTo(new TimeSlot(TODAY_12PM, TODAY_5PM));
+        }
+
+        @Test
+        @DisplayName("Event fully contained inside another → absorbed, no extra gap")
+        void eventInsideAnother_absorbed() {
+            // Event lớn 9:00-14:00 chứa event nhỏ 10:00-11:00
+            Event big = buildEvent(1L, "Big", TODAY_9AM, TODAY_2PM, EventType.APPOINTMENT, 1L);
+            Event small = buildEvent(2L, "Small", TODAY_10AM, TODAY_11AM, EventType.APPOINTMENT, 1L);
+            AvailabilityRequest req = new AvailabilityRequest(1L, TODAY_9AM, TODAY_5PM);
+            when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
+                    .thenReturn(List.of(big, small));
+
+            List<TimeSlot> slots = eventService.getAvailability(req);
+
+            // Event nhỏ bị "nuốt" bởi event lớn → chỉ còn 14:00-17:00
+            assertThat(slots).hasSize(1);
+            assertThat(slots.getFirst()).isEqualTo(new TimeSlot(TODAY_2PM, TODAY_5PM));
+        }
+
+        @Test
+        @DisplayName("Back-to-back events (no gap between) → no free slot between them")
+        void backToBackEvents_noGapBetween() {
+            // 9:00-10:00 nối liền 10:00-11:00 nối liền 11:00-12:00
+            Event e1 = buildEvent(1L, "A", TODAY_9AM, TODAY_10AM, EventType.APPOINTMENT, 1L);
+            Event e2 = buildEvent(2L, "B", TODAY_10AM, TODAY_11AM, EventType.APPOINTMENT, 1L);
+            Event e3 = buildEvent(3L, "C", TODAY_11AM, TODAY_12PM, EventType.BLOCK, 1L);
+            AvailabilityRequest req = new AvailabilityRequest(1L, TODAY_9AM, TODAY_5PM);
+            when(eventRepository.findByOwnerIdAndStartAtBeforeAndEndAtAfterOrderByStartAtAsc(1L, TODAY_5PM, TODAY_9AM))
+                    .thenReturn(List.of(e1, e2, e3));
+
+            List<TimeSlot> slots = eventService.getAvailability(req);
+
+            // 3 events nối liền nhau → chỉ 1 slot trống: 12:00-17:00
+            assertThat(slots).hasSize(1);
+            assertThat(slots.getFirst()).isEqualTo(new TimeSlot(TODAY_12PM, TODAY_5PM));
+        }
     }
 }
-

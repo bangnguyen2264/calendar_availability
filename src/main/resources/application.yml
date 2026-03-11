@@ -29,7 +29,7 @@ app:
     title: ${APP_TITLE:MasterBranch - backend  Interview Questions 2026}
     version: ${APP_VERSION:1.0.0}
     description: ${APP_DESCRIPTION:API quản lý lịch và kiểm tra khung giờ trống}
-    contact-name: ${APP_CONTACT_NAME:MasterBranch Team}
+    contact-name: ${APP_CONTACT_NAME:Nguyễn Trọng Bằng}
     contact-email: ${APP_CONTACT_EMAIL:ngtbang2264.dev@gmail.com}
     swagger:
       enable: ${SWAGGER_ENABLE:true}

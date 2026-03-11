@@ -1,0 +1,274 @@
+{
+  "info": {
+    "_postman_id": "28a1fa51-5e79-4917-82e5-77ded66be9da",
+    "name": "MasterBranch - backend  Interview Questions 2026 Copy",
+    "description": "API quản lý lịch và kiểm tra khung giờ trống\n\nContact Support:\n Name: MasterBranch Team\n Email: ngtbang2264.dev@gmail.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27074540"
+  },
+  "item": [
+    {
+      "name": "query Availability",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "*/*"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"from\": \"1993-07-04T15:19:54.234Z\",\n  \"ownerId\": 6723,\n  \"to\": \"1960-11-04T00:06:29.273Z\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/availability/query",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "availability",
+            "query"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "OK",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "*/*"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"1993-07-04T15:19:54.234Z\",\n  \"ownerId\": 6723,\n  \"to\": \"1960-11-04T00:06:29.273Z\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/availability/query",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "availability",
+                "query"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "text",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "*/*"
+            }
+          ],
+          "cookie": [],
+          "body": "[\n  {\n    \"startAt\": \"2017-01-27T05:15:18.014Z\",\n    \"endAt\": \"1947-04-17T10:44:17.395Z\"\n  },\n  {\n    \"startAt\": \"1982-05-09T18:31:07.858Z\",\n    \"endAt\": \"1977-05-09T21:36:12.603Z\"\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "get Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "*/*"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/events?ownerId=6326&from=1993-10-02T22:44:18.673Z&to=1993-10-02T22:44:18.673Z",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ],
+          "query": [
+            {
+              "key": "ownerId",
+              "value": "6326"
+            },
+            {
+              "key": "from",
+              "value": "1993-10-02T22:44:18.673Z"
+            },
+            {
+              "key": "to",
+              "value": "1993-10-02T22:44:18.673Z"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "*/*"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events?ownerId=6326&from=1993-10-02T22:44:18.673Z&to=1993-10-02T22:44:18.673Z",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "ownerId",
+                  "value": "6326"
+                },
+                {
+                  "key": "from",
+                  "value": "1993-10-02T22:44:18.673Z"
+                },
+                {
+                  "key": "to",
+                  "value": "1993-10-02T22:44:18.673Z"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "text",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "*/*"
+            }
+          ],
+          "cookie": [],
+          "body": "[\n  {\n    \"id\": 704,\n    \"title\": \"string\",\n    \"startAt\": \"1960-05-05T12:33:46.189Z\",\n    \"endAt\": \"1964-10-26T21:50:57.405Z\",\n    \"timezone\": \"string\",\n    \"type\": \"BLOCK\",\n    \"ownerId\": 3838,\n    \"notes\": \"string\",\n    \"location\": \"string\",\n    \"attendees\": \"string\"\n  },\n  {\n    \"id\": 5616,\n    \"title\": \"string\",\n    \"startAt\": \"1966-11-22T12:20:30.145Z\",\n    \"endAt\": \"2010-01-03T05:17:13.141Z\",\n    \"timezone\": \"string\",\n    \"type\": \"APPOINTMENT\",\n    \"ownerId\": 8927,\n    \"notes\": \"string\",\n    \"location\": \"string\",\n    \"attendees\": \"string\"\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "create Event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "*/*"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"endAt\": \"1993-01-21T01:27:10.526Z\",\n  \"ownerId\": 566,\n  \"startAt\": \"1954-12-09T04:23:57.953Z\",\n  \"type\": \"BLOCK\",\n  \"title\": \"st\",\n  \"timezone\": \"string\",\n  \"notes\": \"string\",\n  \"location\": \"string\",\n  \"attendees\": \"string\"\n}",
+          "options": {
+            "raw": {
+              "headerFamily": "json",
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "OK",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "*/*"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"endAt\": \"1993-01-21T01:27:10.526Z\",\n  \"ownerId\": 566,\n  \"startAt\": \"1954-12-09T04:23:57.953Z\",\n  \"type\": \"BLOCK\",\n  \"title\": \"st\",\n  \"timezone\": \"string\",\n  \"notes\": \"string\",\n  \"location\": \"string\",\n  \"attendees\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "text",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "*/*"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": 9908,\n  \"title\": \"string\",\n  \"startAt\": \"1983-02-08T18:42:38.846Z\",\n  \"endAt\": \"1961-04-15T07:26:04.431Z\",\n  \"timezone\": \"string\",\n  \"type\": \"APPOINTMENT\",\n  \"ownerId\": 9880,\n  \"notes\": \"string\",\n  \"location\": \"string\",\n  \"attendees\": \"string\"\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://calendar-availability-api.onrender.com"
+    }
+  ]
+}

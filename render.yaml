@@ -1,0 +1,78 @@
+# ==============================================================================
+# Render Blueprint – Deploy tự động
+# ==============================================================================
+# Render đọc file này và TỰ ĐỘNG:
+#   1. Tạo PostgreSQL database
+#   2. Tạo Web Service (Docker)
+#   3. Inject biến môi trường từ DB vào app (không cần copy/paste thủ công)
+# ==============================================================================
+
+databases:
+  - name: calendar-db
+    plan: free
+    databaseName: calendar_db
+    user: admin
+
+services:
+  - type: web
+    name: calendar-availability-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+
+    envVars:
+      # ==================================================================
+      # DATABASE – Render tự inject từ DB đã tạo ở trên
+      # Bạn KHÔNG cần điền gì, Render tự sinh giá trị
+      # ==================================================================
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: calendar-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: calendar-db
+          property: port
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: calendar-db
+          property: database
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: calendar-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: calendar-db
+          property: password
+
+      # ==================================================================
+      # JPA – Cấu hình production (khác local)
+      # ==================================================================
+      - key: JPA_DDL_AUTO
+        value: update          # production: chỉ update schema, giữ data
+      - key: JPA_SHOW_SQL
+        value: "false"
+      - key: JPA_FORMAT_SQL
+        value: "false"
+
+      # ==================================================================
+      # LOGGING – Giảm log trên production
+      # ==================================================================
+      - key: LOG_LEVEL_SQL
+        value: WARN
+      - key: LOG_LEVEL_BINDER
+        value: WARN
+
+      # ==================================================================
+      # SWAGGER
+      # ==================================================================
+      - key: SWAGGER_ENABLE
+        value: "true"
+
+      # ==================================================================
+      # LƯU Ý: Các biến sau Render TỰ ĐỘNG inject, không cần khai báo:
+      #   - PORT           (Render set port cho web service)
+      #   - RENDER_EXTERNAL_URL  (URL public của app, dùng cho Swagger server)
+      # ==================================================================
+
